@@ -16,14 +16,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 # 找到 Python3 的库文件路径
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm.*|arm|aarch64")
-  add_definitions(-DRK3588)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
-  set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib/aarch64)
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/lib/aarch64")
+        add_definitions(-DRK3588)
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
+        set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib/aarch64)
+        set(CMAKE_INSTALL_RPATH "$ORIGIN/lib/aarch64")
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64)|(^i686)")
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/x86_64)
-  set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib/x86_64)
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/lib/x86_64")
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/x86_64)
+        set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib/x86_64)
+        set(CMAKE_INSTALL_RPATH "$ORIGIN/lib/x86_64")
 endif()
 
 find_package(Eigen3 REQUIRED)
@@ -41,28 +41,45 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
-# add_executable(lowcontrol lowcontroller.cpp)
+add_executable(lowcontrol lowcontroller.cpp)
 
 add_executable(highcontrol highcontroller.cpp )
 # Link both executables to idl data type library and ddscxx.
 target_include_directories(highcontrol  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-# target_include_directories(lowcontrol  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_include_directories(lowcontrol  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm.*|arm|aarch64")
-  
-  target_link_directories(highcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
-  # target_link_directories(lowcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
-  target_link_libraries(highcontrol  
-  Threads::Threads 
-  yaml-cpp  
+
+        target_link_directories(highcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
+        target_link_directories(lowcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/aarch64)
+        target_link_libraries(lowcontrol
+  Threads::Threads
+  onnxruntime
+  ${LIB_DIR}/aarch64/libdriver.a
+  ${LIB_DIR}/aarch64/libyaml-cpp.a
+  ${LIB_DIR}/aarch64/libddsc.so
+  ${LIB_DIR}/aarch64/libddscxx.so
+  )
+        target_link_libraries(highcontrol
+  Threads::Threads
+  yaml-cpp
   ${LIB_DIR}/aarch64/libdriver.a
   ${LIB_DIR}/aarch64/libyaml-cpp.a
   ddsc
   ddscxx  )
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64)|(^i686)")
-  target_link_directories(highcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/x86_64)
-  target_link_libraries(highcontrol   
-  Threads::Threads   
+        target_link_directories(highcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/x86_64)
+        target_link_directories(lowcontrol PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/x86_64)
+        target_link_libraries(lowcontrol
+  Threads::Threads
+  onnxruntime
+  ${LIB_DIR}/x86_64/libdriver.a
+  ${LIB_DIR}/x86_64/libyaml-cpp.a
+  ${LIB_DIR}/x86_64/libddsc.so
+  ${LIB_DIR}/x86_64/libddscxx.so
+  )
+        target_link_libraries(highcontrol
+  Threads::Threads
   ${LIB_DIR}/x86_64/libdriver.a
   ${LIB_DIR}/x86_64/libyaml-cpp.a
   ${LIB_DIR}/x86_64/libddsc.so
@@ -71,9 +88,8 @@ endif()
 # Disable the static analyzer in GCC to avoid crashing the GNU C++ compiler
 # on Azure Pipelines
 if(DEFINED ENV{SYSTEM_TEAMFOUNDATIONSERVERURI})
-  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND ANALYZER STREQUAL "on")
-    target_compile_options(highcontrol PRIVATE -fno-analyzer)
-  endif()
+        if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND ANALYZER STREQUAL "on")
+                target_compile_options(highcontrol PRIVATE -fno-analyzer)
+                target_compile_options(lowcontrol PRIVATE -fno-analyzer)
+        endif()
 endif()
-
-

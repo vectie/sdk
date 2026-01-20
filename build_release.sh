@@ -21,4 +21,5 @@ make -j4
 cd ..
 rm -rf build
 chmod +x highcontrol
+#chmod +x lowcontrol
 
