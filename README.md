@@ -2,7 +2,7 @@
 Noetix robot E1 sdk.
 
 ### Prebuild environment
-* OS  (Ubuntu 20.04 LTS)  
+* OS  (Ubuntu 20.04 LTS or Ubuntu 22.04 LTS)  
 * CPU  (aarch64 or x86_64)   
 * Compiler  (gcc version 9.4.0) 
 
